@@ -30,7 +30,6 @@
                     [zoomControl]="false"
                     (mapClick)="mapClicked($event)">
                 <sebm-google-map-marker *ngFor="let m of markers; let i = index"
-                    (markerClick)="clickedMarker(m.name, i)"
                     [latitude]="m.lat" 
                     [longitude]="m.lng"
                     [markerDraggable]="m.draggable"
@@ -39,6 +38,7 @@
 
                     <sebm-google-map-info-window>
                         <strong>{{ m.name }}</strong>
+                        <a (click)="removeMarker(m)">Delete</a>
                     </sebm-google-map-info-window>
                     
                 </sebm-google-map-marker>

@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
 import { GOOGLE_MAPS_DIRECTIVES, NoOpMapsAPILoader, MapsAPILoader, MouseEvent } from 'angular2-google-maps/core';
 import { FormBuilder, ControlGroup, Validators, Control } from '@angular/common'
+import { MarkersService } from './markers.service';
 
 @Component({
     moduleId: module.id,
     selector: 'my-app',
     directives: [GOOGLE_MAPS_DIRECTIVES],
+    providers: [MarkersService],
     templateUrl: 'app.component.html',
     styles: [`
         .sebm-google-map-container {
@@ -21,24 +23,12 @@ export class AppComponent {
     lat: number = 51.678418;
     lng: number = 7.809007;
     markerForm: ControlGroup;
-    isDraggable:boolean;
+    isDraggable: boolean;
+    markers: Marker[];
 
-    markers: Marker[] = [
-        {
-            name: 'Campany',
-            lat: 51.678418,
-            lng: 7.809007,
-            draggable: true
-        },
-        {
-            name: 'Campany 2',
-            lat: 52.678418,
-            lng: 7.809007,
-            draggable: true
-        }
-    ]
 
-    constructor() {
+
+    constructor(private _markersService: MarkersService) {
         let fb = new FormBuilder();
 
         this.markerForm = fb.group({
@@ -46,13 +36,12 @@ export class AppComponent {
             lat: ['', Validators.required],
             lng: ['', Validators.required],
             draggable: [false]
-        })
+        });
+
+        this.markers = this._markersService.getMarkers();
     }
 
-    clickedMarker(marker: Marker, index: number) {
-        console.log('marker' + marker + 'index' + index);
 
-    }
 
     mapClicked($event: MouseEvent) {
         let newMarker = {
@@ -62,10 +51,10 @@ export class AppComponent {
             draggable: false
         }
         this.markers.push(newMarker);
+        this._markersService.addMarkers(newMarker);
     }
 
     markerDragEnd(marker: any, $event: MouseEvent) {
-        console.log($event);
         let updMarker = {
             name: marker.name,
             lat: parseFloat(marker.lat),
@@ -75,6 +64,8 @@ export class AppComponent {
 
         let newLat = $event.coords.lat;
         let newLng = $event.coords.lng;
+
+        this._markersService.updateMarker(updMarker, newLat, newLng);
     }
 
     addMarker(marker: any) {
@@ -86,7 +77,7 @@ export class AppComponent {
             else {
                 this.isDraggable = false
             }
-            
+
             let newMarker = {
                 name: marker.name,
                 lat: parseFloat(marker.lat),
@@ -95,12 +86,22 @@ export class AppComponent {
             }
 
             this.markers.push(newMarker);
-            console.log(this.isDraggable);
-            
+            this._markersService.addMarkers(newMarker);
+
         }
         else {
             alert('Please fill all field')
         }
+    }
+
+    removeMarker(marker: Marker) {
+        for (let i = 0; i < this.markers.length; i++) {
+            if (marker == this.markers[i]) {
+                this.markers.splice(i, 1);
+                this._markersService.deleteMarker(i);
+            }
+        }
+        
     }
 }
 
